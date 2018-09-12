@@ -31,10 +31,23 @@ router.post('/', (req, res, err) => {
 			json: [],
 			rarbg: [],
 		};
+
+		var rarbg_imdb = {
+			title: '',
+			people: [],
+			languages: [],
+			country: '',
+			director: [],
+			genres: [],
+			year: '',
+			runtime: '',
+			imdbRating: '',
+			rottenRating: '',
+		};
 		if (!err) {
 			/* This is for IMDB, searching the movie id to get info */
 			new request(`https://imdb.com/title/${movieSet.id}/`, (error, response, html) => {
-				if (!error && response.statusCode == 200) {
+				if (!error && response.statusCode === 200) {
 					movieSet.raw = html;
 					const imdbHTML = cheerio.load(html);
 
@@ -43,15 +56,7 @@ router.post('/', (req, res, err) => {
 						.text();
 					movieSet.title = imdbHTML('.title_wrapper')
 						.find('h1')
-						.text()
-						.replace(/[&]nbsp[;]/gi, ' ');
-
-					// movieSet.title = imdbTitleWrapper
-					// 	.find('strong')
-					// 	.text()
-					// 	.replace(/[&]nbsp[;]/gi, ' ');
-					// .replace(/(?:&nbsp;|<br>)/g, '');
-					// .replace(/\s\s+g/, '');
+						.text();
 
 					mainRes.render('index', {
 						displayResults: `Showing results for ${movieSet.title}`,
@@ -60,6 +65,13 @@ router.post('/', (req, res, err) => {
 					});
 
 					console.log(movieSet.title, movieSet.id, movie_name);
+				}
+			});
+
+			new request(`https://rarbg.to/torrents.php?imdb=${movieSet.id}`, (error, response, html) => {
+				if (!error && response.statusCode === 200) {
+
+
 				}
 			});
 		}

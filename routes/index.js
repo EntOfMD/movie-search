@@ -7,7 +7,7 @@ const cheerio = require('cheerio');
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-	res.render('index', { title: 'MovDow - movie search app', sub_title: 'movie download', displayResults: '' });
+	res.render('index', { title: 'MovDow', sub_title: 'a movie search app', displayResults: '' });
 });
 /* /* GET search page.  
 router.get('/search', (req, res, next) => {
@@ -25,6 +25,7 @@ router.post('/', (req, res, err) => {
 		var movieSet = {
 			id: res,
 			title: '',
+			name: '',
 			search: movie_name,
 			raw: [],
 			json: [],
@@ -37,9 +38,10 @@ router.post('/', (req, res, err) => {
 					movieSet.raw = html;
 					const imdbHTML = cheerio.load(html);
 
-					// movieSet.title = imdbHTML('#ratingWidget') //this with .find(strong) gives just the name without the year
+					movieSet.name = imdbHTML('#ratingWidget')
+						.find('strong')
+						.text();
 					movieSet.title = imdbHTML('.title_wrapper')
-						// .find('strong')
 						.find('h1')
 						.text()
 						.replace(/[&]nbsp[;]/gi, ' ');
@@ -53,8 +55,8 @@ router.post('/', (req, res, err) => {
 
 					mainRes.render('index', {
 						displayResults: `Showing results for ${movieSet.title}`,
-						title: 'MovDow - a movie torrent search app',
-						sub_title: movie_name,
+						title: 'MovDow - a movie search app',
+						sub_title: `ohh! I love ${movieSet.name}`,
 					});
 
 					console.log(movieSet.title, movieSet.id, movie_name);

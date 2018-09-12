@@ -15,41 +15,58 @@ router.get('/search', (req, res, next) => {
 }); */
 
 router.post('/', (req, res, err) => {
-	/* res has the imdb movie id */
+	/* req has the imdb movie name, passing it thru nametoimdb to get movie id */
 	var movie_name = req.body.id_field;
-	nameToImdb({ name: movie_name }, (err, res, type) => {
-		const movie_id = res;
+	var mainRes = res;
+
+	nameToImdb({ name: movie_name }, (err, res) => {
+		// const movie_id = res;
+
+		var movieSet = {
+			id: res,
+			title: '',
+			search: movie_name,
+			raw: [],
+			json: [],
+			rarbg: [],
+		};
 		if (!err) {
-			/* This is for IMDB, searching the movie id with the name of the movie */
-			new request(`https://imdb.com/title/${movie_id}/`, (error, response, html) => {
+			/* This is for IMDB, searching the movie id to get info */
+			new request(`https://imdb.com/title/${movieSet.id}/`, (error, response, html) => {
 				if (!error && response.statusCode == 200) {
+					movieSet.raw = html;
 					const imdbHTML = cheerio.load(html);
 
-					const imdbTitleWrapper = imdbHTML('.title_wrapper');
-
-					const title = imdbTitleWrapper
+					// movieSet.title = imdbHTML('#ratingWidget') //this with .find(strong) gives just the name without the year
+					movieSet.title = imdbHTML('.title_wrapper')
+						// .find('strong')
 						.find('h1')
 						.text()
-						.replace(/\s\s+g/, '');
+						.replace(/[&]nbsp[;]/gi, ' ');
 
-					console.log(title, movie_id);
+					// movieSet.title = imdbTitleWrapper
+					// 	.find('strong')
+					// 	.text()
+					// 	.replace(/[&]nbsp[;]/gi, ' ');
+					// .replace(/(?:&nbsp;|<br>)/g, '');
+					// .replace(/\s\s+g/, '');
+
+					mainRes.render('index', {
+						displayResults: `Showing results for ${movieSet.title}`,
+						title: 'MovDow - a movie torrent search app',
+						sub_title: movie_name,
+					});
+
+					console.log(movieSet.title, movieSet.id, movie_name);
 				}
 			});
-			/* This is for rarbg */
-			new request(
-				`https://rarbg.to/torrents.php?search=${movie_id}&category%5B%5D=44&category%5B%5D=50&category%5B%5D=51&category%5B%5D=52&category%5B%5D=42&category%5B%5D=46`,
-				(error, response, html) => {
-					if (!error && response.statusCode == 200) {
-						/* code here */
-					}
-				}
-			);
 		}
 	});
-	res.render('index', {
+
+	/* res.render('index', {
 		displayResults: movie_name,
 		title: 'MovDow - a movie torrent search app',
 		sub_title: movie_name,
-	});
+	}); */
 });
 module.exports = router;

@@ -7,7 +7,7 @@ const cheerio = require('cheerio');
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-	res.render('index', { title: 'MovDow', sub_title: 'a movie search app', displayResults: '' });
+	res.render('index', { title: 'MovDow', sub_title: 'a movie search app', displayResults_info: '', imdb_url: '' });
 });
 /* /* GET search page.  
 router.get('/search', (req, res, next) => {
@@ -19,34 +19,34 @@ router.post('/', (req, res, err) => {
 	var movie_name = req.body.id_field;
 	var mainRes = res;
 
+	var movieSet = {
+		id: '',
+		title: '',
+		name: '',
+		search: movie_name,
+		raw: [],
+		json: [],
+	};
+	var rarbg_imdb = {
+		title: '',
+		people: [],
+		languages: [],
+		country: '',
+		director: [],
+		genres: [],
+		year: '',
+		runtime: '',
+		imdbRating: '',
+		rottenRating: '',
+		raw: [],
+	};
 	nameToImdb({ name: movie_name }, (err, res) => {
-		// const movie_id = res;
+		movieSet.id = res;
 
-		var movieSet = {
-			id: res,
-			title: '',
-			name: '',
-			search: movie_name,
-			raw: [],
-			json: [],
-			rarbg: [],
-		};
-
-		var rarbg_imdb = {
-			title: '',
-			people: [],
-			languages: [],
-			country: '',
-			director: [],
-			genres: [],
-			year: '',
-			runtime: '',
-			imdbRating: '',
-			rottenRating: '',
-		};
 		if (!err) {
 			/* This is for IMDB, searching the movie id to get info */
-			new request(`https://imdb.com/title/${movieSet.id}/`, (error, response, html) => {
+			var imdb_url = `https://imdb.com/title/${movieSet.id}/`;
+			new request(imdb_url, (error, response, html) => {
 				if (!error && response.statusCode === 200) {
 					movieSet.raw = html;
 					const imdbHTML = cheerio.load(html);
@@ -59,28 +59,30 @@ router.post('/', (req, res, err) => {
 						.text();
 
 					mainRes.render('index', {
-						displayResults: `Showing results for ${movieSet.title}`,
+						displayResults_info: `Showing results for ${movieSet.title}`,
 						title: 'MovDow - a movie search app',
-						sub_title: `ohh! I love ${movieSet.name}`,
+						sub_title: `<b>test</b>`,
+						imdb_url: `${imdb_url}`,
 					});
 
-					console.log(movieSet.title, movieSet.id, movie_name);
-				}
-			});
-
-			new request(`https://rarbg.to/torrents.php?imdb=${movieSet.id}`, (error, response, html) => {
-				if (!error && response.statusCode === 200) {
-
-
+					console.log(`User searched for ${movie_name}, found ${movieSet.name} with id# ${movieSet.id}`);
 				}
 			});
 		}
 	});
 
-	/* res.render('index', {
-		displayResults: movie_name,
-		title: 'MovDow - a movie torrent search app',
-		sub_title: movie_name,
-	}); */
+	function rarbg() {
+		return new Promise(function(resolve, reject) {
+			request(`https://rarbg.to/torrents.php?imdb=${movieSet.id}`, function(err, response, body) {
+				if (err) reject(err);
+				if (response.statusCode !== 200) {
+					reject(`invalid status code: ${response.statusCode}`);
+				}
+
+				let $ = cheerio.load(body);
+				// rarbg_imdb.raw = $();
+			});
+		});
+	}
 });
 module.exports = router;

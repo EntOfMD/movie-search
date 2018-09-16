@@ -5,15 +5,18 @@
     <link rel='stylesheet' href='/stylesheets/style.css' />
   </head>
   <body>
-    <h1><%= title %></h1>
+    <h1 class='title'><%= title %></h1>
     <p><%= sub_title %></p>
+    <div class="search_bar">
     <form action="/" method="post">
     <input id="movie_id" type="text" name="id_field" placeholder='Enter movie name...' autocomplete='off'>
     <input type="submit" value="Search">
-</form>
+</form></div>
 
 <div class="results">
-<%= displayResults %>
+<span><a href="https://www.imdb.com/title/tt0800369/"><img src="https://ia.media-imdb.com/images/G/01/imdb/plugins/rating/images/imdb_46x22.png" />
+</a></span>
+<%= displayResults_info %> <a href="<%= imdb_url %>"><%= imdb_url %></a>
 </div>
     
   </body>
